@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>展板露出核查</title>
+<style>
+  body { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+         max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.4rem; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .error { background: #fdecea; border-color: #f5c6c0; color: #a33; }
+  code, pre { background: #f6f8fa; border-radius: 4px; }
+  code { padding: 0 .3em; }
+  pre { padding: .75rem; overflow-x: auto; font-size: .85rem; }
+  button { padding: .5rem 1.2rem; font-size: 1rem; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: .4rem .6rem; text-align: left; }
+  th { background: #f0f0f0; }
+  .ok { color: #176f2c; font-weight: 600; }
+  .bad { color: #b3261e; font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<h1>展板露出核查</h1>
+<p>上传描述展板与裁片的 JSON，核查每幅原片在展板上露出的面积是否都在其可刊矩形内。</p>
+
+{% if error %}
+<div class="card error">{{ error }}</div>
+{% endif %}
+
+<div class="card">
+  <form action="/analyze" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".json,application/json" required>
+    <button type="submit">核查</button>
+  </form>
+  <p><a href="/static/sample.json" download>下载示例 JSON</a></p>
+</div>
+
+<div class="card">
+<h2>JSON 格式</h2>
+<pre>{
+  "board": {"width": 6000, "height": 4000},          <span>// 展板尺寸（整数像素，可达 100000）</span>
+  "photos": [                                         <span>// 原片清单</span>
+    {"id": "A-001", "credit": "陈晨",
+     "permit": {"x": 0, "y": 0, "w": 2400, "h": 1600}}  <span>// 可刊矩形（原片坐标）</span>
+  ],
+  "pieces": [                                         <span>// 裁片，从下往上排列</span>
+    {"photo": "A-001",
+     "crop": {"x": 100, "y": 80, "w": 1200, "h": 900},  <span>// 原片裁框（原片坐标）</span>
+     "at": {"x": 300, "y": 250}}                        <span>// 落版位置（裁框左上角在展板上的坐标）</span>
+  ]
+}</pre>
+<ul>
+  <li>所有坐标均为整数像素；裁片按原尺寸铺放、互不透明。</li>
+  <li>只统计展板范围内、且未被上层裁片遮住的部分；同一原片多处露出重叠时只计一次。</li>
+  <li>整页无缺口（露出均在可刊矩形内）时才可下载署名 CSV。</li>
+</ul>
+</div>
+</body>
+</html>

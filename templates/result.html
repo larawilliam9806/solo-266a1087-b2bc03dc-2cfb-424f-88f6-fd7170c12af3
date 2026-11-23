@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>核查结果</title>
+<style>
+  body { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+         max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.4rem; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .ok { color: #176f2c; font-weight: 600; }
+  .bad { color: #b3261e; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: .4rem .6rem; text-align: left; }
+  th { background: #f0f0f0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  a.button, button { display: inline-block; padding: .5rem 1.2rem; font-size: 1rem;
+         background: #176f2c; color: #fff; border-radius: 6px; text-decoration: none; }
+</style>
+</head>
+<body>
+<h1>核查结果</h1>
+
+<div class="card">
+  展板 {{ report.board[0] }} × {{ report.board[1] }} 像素，共 {{ report.piece_count }} 片裁片；
+  露出总面积 {{ report.total_exposed }} 像素²，
+  缺许可面积
+  {% if report.clean %}
+    <span class="ok">0 —— 整页无缺口 ✓</span>
+  {% else %}
+    <span class="bad">{{ report.total_unlicensed }} 像素² —— 存在未获许可的露出 ✗</span>
+  {% endif %}
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>原片编号</th><th>署名</th>
+      <th>露出面积 (px²)</th><th>缺许可面积 (px²)</th><th>一处未获许可的原片坐标</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in report.rows %}
+    <tr>
+      <td>{{ row.id }}</td>
+      <td>{{ row.credit }}</td>
+      <td class="num">{{ row.exposed }}</td>
+      {% if row.unlicensed > 0 %}
+        <td class="num bad">{{ row.unlicensed }}</td>
+        <td>({{ row.point[0] }}, {{ row.point[1] }})</td>
+      {% else %}
+        <td class="num">0</td>
+        <td>—</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="card">
+  {% if token %}
+    <a class="button" href="/download/{{ token }}">下载署名 CSV</a>
+    <p>仅列出实际露出的原片编号与署名。</p>
+  {% else %}
+    <p class="bad">存在缺许可的露出，无法下载署名 CSV。请先解决上方列出的缺口。</p>
+  {% endif %}
+  <p><a href="/">← 重新上传</a></p>
+</div>
+</body>
+</html>
