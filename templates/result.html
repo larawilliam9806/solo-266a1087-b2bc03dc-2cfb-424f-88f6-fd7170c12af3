@@ -61,6 +61,13 @@
   {% if token %}
     <a class="button" href="/download/{{ token }}">下载署名 CSV</a>
     <p>仅列出实际露出的原片编号与署名。</p>
+    <p>本次核查的署名表已保存，链接在 {{ expires_text }} 前（约 {{ ttl_hours }} 小时）可反复下载，
+       不受后续核查或服务重启影响。</p>
+  {% elif report.clean and download_error %}
+    <p class="bad">署名 CSV 暂时无法下载：{{ download_error }}</p>
+    <p>本次核查报告仍可照常查看；如需署名表，请稍后重新核查。</p>
+  {% elif report.clean %}
+    <p class="bad">署名 CSV 暂时无法下载，请稍后重新核查。</p>
   {% else %}
     <p class="bad">存在缺许可的露出，无法下载署名 CSV。请先解决上方列出的缺口。</p>
   {% endif %}

@@ -10,19 +10,34 @@ docker compose up --build
 # 打开 http://localhost:8000
 ```
 
+署名表默认暂存在 Docker 命名卷 `credit-data` 中，容器重启后仍在有效期内的
+下载链接不受影响。可通过环境变量调整（也可写在同目录 `.env` 文件中）：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `CREDIT_STORE_MAX_BYTES` | `16777216`（16MB） | 署名表暂存总上限，按 CSV 文件实际字节数计 |
+| `CREDIT_STORE_TTL_SECONDS` | `28800`（8 小时） | 下载链接有效期 |
+
 本地开发（需 Python 3.11+）：
 
 ```bash
 pip install -r requirements.txt
-python app.py            # http://localhost:8000
-python test_geometry.py  # 运行核心逻辑测试
+python app.py                    # http://localhost:8000，数据存于 ./data
+python test_geometry.py          # 核心几何逻辑
+python test_credit_store.py      # 暂存、过期与容量
+python test_app.py               # 网页与下载路由
 ```
 
 ## 使用
 
 1. 在首页上传描述 JSON（可下载页面上的示例对照格式）。
 2. 结果页按原片列出：**露出面积**、**缺许可面积**；有缺口时给出**一处未获许可的原片坐标**。
-3. 整页无缺口时出现「下载署名 CSV」按钮，CSV 只列实际露出的原片编号与署名。
+3. 整页无缺口、且本次署名表保存成功后，结果页才出现「下载署名 CSV」按钮；
+   CSV 只列实际露出的原片编号与署名。
+4. 链接生效后 8 小时内可反复下载；后续核查不会挤掉仍在有效期内的表，服务重启后
+   链接依旧可用（署名表落盘在 `CREDIT_STORE_DIR`）。
+5. 链接到期后访问会提示重新核查，过期表占用的空间可被新表复用。若暂存空间不足或
+   写入失败，仍照常显示本次核查报告，并说明为何无法下载；此前未过期的链接照常可用。
 
 ## JSON 格式
 

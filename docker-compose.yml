@@ -3,4 +3,14 @@ services:
     build: .
     ports:
       - "8000:8000"
+    environment:
+      # 署名表暂存总上限（字节）与有效期（秒），可按需覆盖
+      CREDIT_STORE_MAX_BYTES: "${CREDIT_STORE_MAX_BYTES:-16777216}"
+      CREDIT_STORE_TTL_SECONDS: "${CREDIT_STORE_TTL_SECONDS:-28800}"
+    volumes:
+      # 持久化署名表：容器重启后有效链接仍可下载
+      - credit-data:/app/data
     restart: unless-stopped
+
+volumes:
+  credit-data:

@@ -2,4 +2,7 @@
 __pycache__
 *.pyc
 test_geometry.py
+test_credit_store.py
+test_app.py
 README.md
+data
